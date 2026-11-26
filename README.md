@@ -3,9 +3,8 @@
 Studi kasus analisis data end-to-end: 100.000 pesanan e-commerce selama
 5 tahun, diolah dari data mentah sampai dashboard interaktif.
 
-**Dashboard live:** aktifkan GitHub Pages pada repo ini, versi web
-dari dashboard Sheets tersedia sebagai `index.html` (desain dan
-angka yang sama dengan versi Sheets).
+**Dashboard live:** https://rifqi-ai.github.io/amazon-sales-analysis/
+(versi web dari dashboard Sheets, desain dan angka yang sama).
 **Dashboard Google Sheets:** berkas "amazon_kerja_bersih" (tab
 Dashboard + Calc), dibangun dengan rumus SUMIFS/COUNTIFS/AVERAGEIFS,
 dropdown filter Tahun dan Metode Bayar, dan slicer Bulan.

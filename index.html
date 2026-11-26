@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Amazon Sales Executive Dashboard (2020–2024)</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#EEF2F6;color:#1c2733}
+.band{background:#1F3864;color:#fff;padding:20px}
+.band h1{margin:0;font-size:22px;letter-spacing:.4px}
+.band p{margin:6px 0 0;opacity:.85;font-size:13.5px}
+.wrap{max-width:1200px;margin:0 auto;padding:14px}
+.filterbar{background:#fff;border:1px solid #D5DDE6;border-radius:6px;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.filterbar label{font-size:12px;font-weight:700;letter-spacing:1px;color:#5A6B7D}
+.filterbar select{font-size:14px;padding:6px 10px;border:1px solid #B9C6D2;border-radius:4px;background:#fff;color:#1F3864;font-weight:700}
+.filterbar .hint{font-size:12.5px;color:#5A6B7D}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:12px}
+.kpi{background:#fff;border:1px solid #D5DDE6;border-top:4px solid #2563EB;border-radius:6px;padding:12px 14px}
+.kpi.green{border-top-color:#16A34A}.kpi.red{border-top-color:#DC2626}
+.kpi .lbl{font-size:11.5px;font-weight:700;letter-spacing:1.2px;color:#5A6B7D}
+.kpi .big{font-size:28px;font-weight:800;color:#1F3864;margin:5px 0 2px}
+.kpi.green .big{color:#15803D}.kpi.red .big{color:#B91C1C}
+.kpi .sub{font-size:12.5px;color:#5A6B7D;line-height:1.5}
+.kpi .meter{height:6px;background:#EAF0F7;border-radius:3px;margin-top:8px;overflow:hidden}
+.kpi .meter i{display:block;height:100%}
+.card{background:#fff;border:1px solid #D5DDE6;border-radius:6px;padding:16px;margin-top:12px}
+.card h2{margin:0 0 4px;font-size:16px;color:#1F3864}
+.card .note{font-size:13px;color:#5A6B7D;margin:0 0 10px;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:840px){.grid2{grid-template-columns:1fr}}
+.flex{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.leg{font-size:14px;margin:6px 0;overflow:hidden}.leg b{float:right;margin-left:20px;color:#1F3864}
+.dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:8px}
+.prow{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:14px}
+.pname{width:140px;flex:none}.pval{flex:none;color:#43566B}
+.pbar{flex:1;background:#EAF0F7;border-radius:4px;height:18px;overflow:hidden}
+.pbar i{display:block;height:100%;background:#2563EB}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{background:#1F3864;color:#fff;padding:8px 9px;text-align:left;font-size:12.5px;letter-spacing:.5px}
+td{padding:7px 9px;border-bottom:1px solid #E1E9F0}
+td.num,th.num{text-align:right}
+.warn{background:#FDF6EC;border-color:#E8C39A}
+.warn h2{color:#8A5A17}.warn .note{color:#6B543A}
+.foot{font-size:12.5px;color:#5A6B7D;padding:14px 4px 30px;line-height:1.6}
+</style></head><body>
+<div class="band"><h1>AMAZON SALES EXECUTIVE DASHBOARD (2020–2024)</h1>
+<p>Versi web dari dashboard Google Sheets proyek ini: desain, susunan, dan angka yang sama. Analisis: Google Colab (pandas), diverifikasi silang dengan rumus Google Sheets.</p></div>
+<div class="wrap">
+<div class="filterbar"><label for="tahun">YEAR</label>
+<select id="tahun">
+<option value="ALL">All</option><option>2020</option><option>2021</option><option>2022</option><option>2023</option><option>2024</option>
+</select>
+<span class="hint">Ganti tahun: kartu KPI, grafik tren bulanan, dan donat status membaca ulang angka tahun itu. Grafik tahunan, metode bayar, dan tabel produk adalah ringkasan keseluruhan.</span></div>
+
+<div class="kpis">
+<div class="kpi"><div class="lbl">TOTAL ORDERS</div><div class="big" id="kTotal"></div><div class="sub" id="kTotalSub"></div></div>
+<div class="kpi"><div class="lbl">DELIVERED REVENUE</div><div class="big" id="kRev"></div><div class="sub" id="kRevSub"></div></div>
+<div class="kpi"><div class="lbl">AOV (DELIVERED)</div><div class="big" id="kAov"></div><div class="sub">Avg. Delivered order value</div></div>
+<div class="kpi green"><div class="lbl">FULFILLMENT RATE</div><div class="big" id="kFul"></div><div class="sub" id="kFulSub"></div><div class="meter"><i id="kFulBar" style="background:#16A34A"></i></div></div>
+<div class="kpi red"><div class="lbl">CANCEL RATE</div><div class="big" id="kCancel"></div><div class="sub" id="kCancelSub"></div><div class="meter"><i id="kCancelBar" style="background:#DC2626"></i></div></div>
+</div>
+
+<div class="card"><h2 id="trenTitle">Monthly Performance Trend (Revenue &amp; Orders)</h2>
+<p class="note">Kolom teal adalah pendapatan Delivered per bulan, garis oranye jumlah pesanan. Tren datar selama 60 bulan: tidak ada pertumbuhan.</p>
+<div id="trenChart"></div></div>
+
+<div class="grid2">
+<div class="card"><h2>Annual Performance Summary (2020–2024)</h2>
+<p class="note">Pendapatan Delivered per tahun (kolom) dan total pesanan per tahun (garis). Kelima tahun nyaris identik.</p>
+<div id="tahunChart"></div></div>
+<div class="card"><h2>Order Status Distribution</h2>
+<p class="note">Delivered sekitar tiga per empat pesanan pada cakupan terpilih.</p>
+<div class="flex"><div id="donat"></div><div style="min-width:250px;flex:1" id="legend"></div></div></div>
+</div>
+
+<div class="card"><h2>Orders by Payment Method (Descending)</h2>
+<p class="note">Credit Card dominan: 35.038 pesanan dan pendapatan Delivered 23.933.235. Cash on Delivery paling kecil.</p>
+<div class="prow"><span class="pname">Credit Card</span><span class="pbar"><i style="width:100.0%"></i></span><span class="pval">35.038 pesanan, 35,04%</span></div><div class="prow"><span class="pname">Debit Card</span><span class="pbar"><i style="width:57.1%"></i></span><span class="pval">20.024 pesanan, 20,02%</span></div><div class="prow"><span class="pname">UPI</span><span class="pbar"><i style="width:43.0%"></i></span><span class="pval">15.066 pesanan, 15,07%</span></div><div class="prow"><span class="pname">Amazon Pay</span><span class="pbar"><i style="width:42.9%"></i></span><span class="pval">15.017 pesanan, 15,02%</span></div><div class="prow"><span class="pname">Net Banking</span><span class="pbar"><i style="width:28.3%"></i></span><span class="pval">9.927 pesanan, 9,93%</span></div><div class="prow"><span class="pname">Cash on Delivery</span><span class="pbar"><i style="width:14.1%"></i></span><span class="pval">4.928 pesanan, 4,93%</span></div></div>
+
+<div class="card"><h2>TOP 10 PRODUCTS (DELIVERED)</h2>
+<p class="note">Tidak ada produk juara: 50 produk berbagi hampir rata, selisih peringkat 1 dan 10 hanya sekitar 4%.</p>
+<table><tr><th>#</th><th>Product Name</th><th class="num">Orders</th><th class="num">Delivered Revenue</th><th class="num">Product AOV</th><th class="num">Rev Share (%)</th></tr><tr><td>1</td><td>Electric Kettle</td><td class="num">1.558</td><td class="num">1.468.040</td><td class="num">942,26</td><td class="num">2,15%</td></tr><tr><td>2</td><td>Memory Card 128GB</td><td class="num">1.553</td><td class="num">1.456.188</td><td class="num">937,66</td><td class="num">2,13%</td></tr><tr><td>3</td><td>Board Game</td><td class="num">1.557</td><td class="num">1.425.685</td><td class="num">915,66</td><td class="num">2,09%</td></tr><tr><td>4</td><td>Cookware Set</td><td class="num">1.562</td><td class="num">1.420.895</td><td class="num">909,66</td><td class="num">2,08%</td></tr><tr><td>5</td><td>Water Bottle</td><td class="num">1.550</td><td class="num">1.412.685</td><td class="num">911,41</td><td class="num">2,07%</td></tr><tr><td>6</td><td>LED Desk Lamp</td><td class="num">1.565</td><td class="num">1.411.567</td><td class="num">901,96</td><td class="num">2,06%</td></tr><tr><td>7</td><td>Microphone</td><td class="num">1.530</td><td class="num">1.409.494</td><td class="num">921,24</td><td class="num">2,06%</td></tr><tr><td>8</td><td>Kids Toy Car</td><td class="num">1.496</td><td class="num">1.408.064</td><td class="num">941,22</td><td class="num">2,06%</td></tr><tr><td>9</td><td>Smart Light Bulb</td><td class="num">1.531</td><td class="num">1.407.939</td><td class="num">919,62</td><td class="num">2,06%</td></tr><tr><td>10</td><td>Mechanical Keyboard</td><td class="num">1.501</td><td class="num">1.407.859</td><td class="num">937,95</td><td class="num">2,06%</td></tr></table></div>
+
+<div class="card warn"><h2>Catatan Kualitas Data</h2>
+<p class="note">Note: Revenue = TotalAmount of Delivered orders only. Category, Brand, Country and CustomerName are randomized in this dataset and are not used. Keempat kolom itu terbukti tertempel acak lewat cek konsistensi (50 dari 50 produk muncul di semua kategori; 20 dari 20 kota muncul di banyak negara). TotalAmount lolos audit rumus di 100.000 baris. Pola datar di semua metrik menunjukkan ciri data sintetis; nilai proyek ini ada pada metodenya.</p></div>
+
+<p class="foot">Sumber: "Amazon Sales Dataset" oleh rohiteng di Kaggle (Amazon.csv, 100.000 baris). Diolah di Google Colab, dashboard Sheets dibangun dengan rumus dan diverifikasi (total tahunan tepat 68.372.677, AOV 916,18). Disusun 26 Nov 2026.</p>
+</div>
+<script>
+const D = {"tren": [["2020-01", 1730, 1232359.81], ["2020-02", 1490, 1037776.36], ["2020-03", 1685, 1161649.95], ["2020-04", 1692, 1165324.8], ["2020-05", 1672, 1194465.54], ["2020-06", 1633, 1125718.19], ["2020-07", 1687, 1170131.25], ["2020-08", 1783, 1255548.1], ["2020-09", 1679, 1163329.08], ["2020-10", 1647, 1127283.06], ["2020-11", 1639, 1124254.53], ["2020-12", 1729, 1174495.73], ["2021-01", 1764, 1187828.31], ["2021-02", 1516, 1076117.64], ["2021-03", 1620, 1074589.35], ["2021-04", 1594, 1082513.87], ["2021-05", 1716, 1149262.45], ["2021-06", 1668, 1178554.63], ["2021-07", 1718, 1171866.88], ["2021-08", 1704, 1161825.59], ["2021-09", 1674, 1172037.3], ["2021-10", 1672, 1116858.74], ["2021-11", 1587, 1033244.15], ["2021-12", 1657, 1093835.63], ["2022-01", 1744, 1232974.2], ["2022-02", 1510, 1014911.9], ["2022-03", 1710, 1185474.29], ["2022-04", 1636, 1133402.68], ["2022-05", 1709, 1141532.01], ["2022-06", 1690, 1158952.82], ["2022-07", 1689, 1193784.65], ["2022-08", 1717, 1117753.01], ["2022-09", 1645, 1072246.8], ["2022-10", 1633, 1155545.83], ["2022-11", 1642, 1107342.62], ["2022-12", 1753, 1243325.2], ["2023-01", 1721, 1196136.82], ["2023-02", 1540, 1047740.47], ["2023-03", 1683, 1153139.64], ["2023-04", 1641, 1162628.02], ["2023-05", 1709, 1177065.04], ["2023-06", 1650, 1066326.14], ["2023-07", 1712, 1158613.7], ["2023-08", 1733, 1141565.64], ["2023-09", 1665, 1099444.78], ["2023-10", 1660, 1140227.75], ["2023-11", 1656, 1116409.02], ["2023-12", 1726, 1177952.18], ["2024-01", 1679, 1127955.29], ["2024-02", 1562, 1052016.06], ["2024-03", 1740, 1162235.19], ["2024-04", 1647, 1117608.68], ["2024-05", 1753, 1250103.79], ["2024-06", 1671, 1140735.85], ["2024-07", 1631, 1126698.05], ["2024-08", 1731, 1162231.1], ["2024-09", 1613, 1090254.76], ["2024-10", 1642, 1110090.21], ["2024-11", 1624, 1127111.63], ["2024-12", 1577, 1080270.34]], "statusTahun": {"2020": [591, 15040, 810, 645, 2980], "2021": [601, 14816, 806, 630, 3037], "2022": [643, 14977, 839, 582, 3037], "2023": [579, 14955, 835, 593, 3134], "2024": [614, 14840, 813, 599, 3004]}, "aovTahun": {"2020": 926.35, "2021": 911.08, "2022": 918.56, "2023": 911.89, "2024": 912.89}};
+const fmt = (x, dec=0) => x.toLocaleString('id-ID',{minimumFractionDigits:dec, maximumFractionDigits:dec});
+const NAMA = ['Cancelled','Delivered','Pending','Returned','Shipped'];
+const WARNA = ['#DC2626','#159A7C','#7FB3D5','#E67E22','#2563EB'];
+let tahun = 'ALL';
+function agregat(){
+  const rows = D.tren.filter(r => tahun==='ALL' || r[0].startsWith(tahun));
+  const total = rows.reduce((a,r)=>a+r[1],0);
+  const rev = rows.reduce((a,r)=>a+r[2],0);
+  let st, aov;
+  if(tahun==='ALL'){ st = [3028,74628,4103,3049,15192]; aov = 916.18; }
+  else { const s = D.statusTahun[tahun]; st = [s[0],s[1],s[2],s[3],s[4]]; aov = D.aovTahun[tahun]; }
+  return {rows, total, rev, st, aov};
+}
+function gambar(){
+  const {rows, total, rev, st, aov} = agregat();
+  document.getElementById('kTotal').textContent = fmt(total);
+  document.getElementById('kTotalSub').innerHTML = 'Period: ' + (tahun==='ALL' ? 'All' : tahun) + ' | Pay: All<br>Rata rata ' + fmt(Math.round(total/rows.length)) + ' pesanan per bulan';
+  document.getElementById('kRev').textContent = fmt(Math.round(rev));
+  document.getElementById('kRevSub').textContent = 'Delivered orders: ' + fmt(st[1]);
+  document.getElementById('kAov').textContent = fmt(aov, 2);
+  const ful = st[1]/total*100;
+  document.getElementById('kFul').textContent = fmt(ful, 2) + '%';
+  document.getElementById('kFulSub').textContent = fmt(st[1]) + ' delivered';
+  document.getElementById('kFulBar').style.width = ful + '%';
+  const can = st[0]/total*100;
+  document.getElementById('kCancel').textContent = fmt(can, 2) + '%';
+  document.getElementById('kCancelSub').textContent = fmt(st[0]) + ' cancelled';
+  document.getElementById('kCancelBar').style.width = (can*3) + '%';
+  document.getElementById('trenTitle').textContent = 'Monthly Performance Trend (Revenue & Orders)' + (tahun==='ALL' ? '' : ' — ' + tahun);
+  const W=1160, H=320, PB=28, PT=14, maks=Math.max(...rows.map(r=>r[2])), maksO=Math.max(...rows.map(r=>r[1])), bw=W/rows.length;
+  let s = '<svg viewBox="0 0 '+W+' '+H+'" width="100%"><line x1="0" y1="'+(H-PB)+'" x2="'+W+'" y2="'+(H-PB)+'" stroke="#B9C6D2"/>';
+  rows.forEach((r,i)=>{ const h=(H-PB-PT)*r[2]/maks; s += '<rect x="'+(i*bw+1).toFixed(1)+'" y="'+(H-PB-h).toFixed(1)+'" width="'+(bw-2).toFixed(1)+'" height="'+h.toFixed(1)+'" fill="#159A7C" opacity="0.85"><title>'+r[0]+': pendapatan '+fmt(Math.round(r[2]))+', pesanan '+fmt(r[1])+'</title></rect>'; });
+  let pts = rows.map((r,i)=>(((i+0.5)*bw).toFixed(1))+','+(H-PB-(H-PB-PT)*r[1]/maksO).toFixed(1)).join(' ');
+  s += '<polyline points="'+pts+'" fill="none" stroke="#E67E22" stroke-width="2"/>';
+  if(tahun==='ALL'){ for(let i=0;i<5;i++){ s += '<text x="'+((i*12+6)*bw)+'" y="'+(H-8)+'" font-size="12" fill="#556" text-anchor="middle">'+(2020+i)+'</text>'; } }
+  else { rows.forEach((r,i)=>{ s += '<text x="'+((i+0.5)*bw)+'" y="'+(H-8)+'" font-size="12" fill="#556" text-anchor="middle">'+r[0].slice(5)+'</text>'; }); }
+  document.getElementById('trenChart').innerHTML = s + '</svg>';
+  const C = 2*Math.PI*80; let off = 0, seg = '';
+  st.forEach((v,i)=>{ const f = v/total; seg += '<circle cx="110" cy="110" r="80" fill="none" stroke="'+WARNA[i]+'" stroke-width="30" stroke-dasharray="'+(f*C).toFixed(1)+' '+C.toFixed(1)+'" stroke-dashoffset="'+(-off*C).toFixed(1)+'" transform="rotate(-90 110 110)"/>'; off += f; });
+  document.getElementById('donat').innerHTML = '<svg viewBox="0 0 220 220" width="210">' + seg + '<text x="110" y="106" font-size="23" font-weight="700" fill="#1F3864" text-anchor="middle">' + fmt(total) + '</text><text x="110" y="128" font-size="11" fill="#556" text-anchor="middle">pesanan</text></svg>';
+  document.getElementById('legend').innerHTML = st.map((v,i)=>'<div class="leg"><span class="dot" style="background:'+WARNA[i]+'"></span>'+NAMA[i]+'<b>'+fmt(v)+' ('+fmt(v/total*100,2)+'%)</b></div>').join('');
+}
+function gambarTahunan(){
+  const yrs = [2020,2021,2022,2023,2024];
+  const data = yrs.map(y=>{ const rows = D.tren.filter(r=>r[0].startsWith(y)); return {y, o: rows.reduce((a,r)=>a+r[1],0), v: rows.reduce((a,r)=>a+r[2],0)}; });
+  const W=560, H=300, PB=28, PT=26, maks=Math.max(...data.map(d=>d.v)), maksO=Math.max(...data.map(d=>d.o)), bw=W/5;
+  let s = '<svg viewBox="0 0 '+W+' '+H+'" width="100%"><line x1="0" y1="'+(H-PB)+'" x2="'+W+'" y2="'+(H-PB)+'" stroke="#B9C6D2"/>';
+  data.forEach((d,i)=>{ const h=(H-PB-PT)*d.v/maks; s += '<rect x="'+(i*bw+18).toFixed(1)+'" y="'+(H-PB-h).toFixed(1)+'" width="'+(bw-36).toFixed(1)+'" height="'+h.toFixed(1)+'" fill="#2563EB"><title>'+d.y+': pendapatan '+fmt(Math.round(d.v))+', pesanan '+fmt(d.o)+'</title></rect>';
+    s += '<text x="'+((i+0.5)*bw)+'" y="'+(H-PB-h-6)+'" font-size="12" fill="#1F3864" text-anchor="middle" font-weight="700">'+fmt(Math.round(d.v/1000000),1)+' jt</text>';
+    s += '<text x="'+((i+0.5)*bw)+'" y="'+(H-8)+'" font-size="12" fill="#556" text-anchor="middle">'+d.y+'</text>'; });
+  let pts = data.map((d,i)=>(((i+0.5)*bw).toFixed(1))+','+(H-PB-(H-PB-PT)*d.o/maksO).toFixed(1)).join(' ');
+  s += '<polyline points="'+pts+'" fill="none" stroke="#E67E22" stroke-width="2"/>';
+  document.getElementById('tahunChart').innerHTML = s + '</svg>';
+}
+document.getElementById('tahun').onchange = (e)=>{ tahun = e.target.value; gambar(); };
+gambar(); gambarTahunan();
+</script>
+</body></html>
